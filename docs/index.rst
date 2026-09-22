@@ -1,15 +1,17 @@
 Welcome to sphinx-version-warning!
 ==================================
 
-``sphinx-version-warning`` is a Sphinx extension that allows you to show a Warning banner at the top of your documentation.
-By default, the banner is shown based on the version that is displayed compared (using SemVer_) with the latest version on the server.
+``sphinx-version-warning`` is a Sphinx extension that shows a customizable
+warning banner at the top of versioned documentation hosted on Read the Docs.
+By default, it compares the version being viewed with the highest active
+version whose slug can be interpreted as SemVer_.
 
 
 Online documentation:
     https://sphinx-version-warning.readthedocs.io/
 
 Source code repository (and issue tracker):
-    https://github.com/humitos/sphinx-version-warning/
+    https://github.com/grahamsh-llk/sphinx-version-warning/
 
 Badges:
     |PyPI version| |Docs badge| |License|
@@ -19,14 +21,15 @@ Why do I need this extension?
 
 You *probably* don't.
 
-Read the Docs `implements this feature by itself`_ adding a banner for you in old versions.
+Read the Docs `implements this feature by itself`_, adding a banner for you in
+old versions.
 
 Although, comparing this extension with Read the Docs' core functionality,
-``sphinx-version-warning`` allows the user to highly customize the banner by changing the message,
-the style, the position, etc. which is not possible with Read the Docs feature.
+``sphinx-version-warning`` allows the user to customize the banner's message,
+style, and position beyond what the built-in Read the Docs feature supports.
 
-The default settings behaves in the same manner that Read the Docs' core functionality,
-so you will want to check out :doc:`configuration` for a better customization.
+The default settings behave similarly to the built-in Read the Docs feature.
+See :doc:`configuration` for the available customization options.
 
 .. note::
 
@@ -37,10 +40,16 @@ so you will want to check out :doc:`configuration` for a better customization.
 How does it work?
 -----------------
 
-When visiting a page in Read the Docs that was built with this extension enabled,
-an AJAX request is done to the `Read the Docs Public API`_ to retrieve all the **active versions** of the project.
-These versions are compared against the one that the user is reading and if it's an old version,
-a *warning banner* appears at the top of the page.
+When a page is visited, the extension listens for version information from the
+`Read the Docs Addons API`_. It then loads the banner configuration generated
+during the Sphinx build and compares the current version against the active
+versions supplied by Read the Docs. If the current semantic version is older
+than the highest active semantic version, a warning banner is inserted at the
+top of the configured page container.
+
+The version-selection behavior can optionally prefer Read the Docs' ``stable``
+version. Custom messages can also replace the normal version comparison for
+specific version slugs. See :doc:`configuration` for details.
 
 
 .. toctree::
@@ -60,7 +69,7 @@ a *warning banner* appears at the top of the page.
    autoapi/versionwarning/index
 
 .. _SemVer: https://semver.org/
-.. _Read the Docs Public API: https://docs.readthedocs.io/page/api/v2.html
+.. _Read the Docs Addons API: https://docs.readthedocs.com/platform/stable/addons.html#custom-event-integration
 .. _implements this feature by itself: https://docs.readthedocs.io/page/versions.html#version-warning
 .. _this comment: https://github.com/readthedocs/readthedocs.org/issues/3481#issuecomment-378000845
 
@@ -70,6 +79,6 @@ a *warning banner* appears at the top of the page.
 .. |Docs badge| image:: https://readthedocs.org/projects/sphinx-version-warning/badge/?version=latest
    :target: https://sphinx-version-warning.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation status
-.. |License| image:: https://img.shields.io/github/license/humitos/sphinx-version-warning.svg
+.. |License| image:: https://img.shields.io/github/license/grahamsh-llk/sphinx-version-warning.svg
    :target: LICENSE
    :alt: Repository license

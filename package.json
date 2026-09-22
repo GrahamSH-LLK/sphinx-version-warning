@@ -1,9 +1,16 @@
 {
-  "name": "sphinx-version-warning",
-  "version": "1.1.2",
+  "name": "modern-sphinx-version-warning",
+  "version": "1.1.7",
   "dependencies": {
-    "semver": "^5.6.0",
-    "webpack": "^4.24.0",
-    "webpack-cli": "^3.1.2"
+    "semver": "^7.8.5",
+    "webpack": "^5.111.1",
+    "webpack-cli": "^7.2.3"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "rolldown -c"
+  },
+  "devDependencies": {
+    "rolldown": "^1.2.9"
   }
 }

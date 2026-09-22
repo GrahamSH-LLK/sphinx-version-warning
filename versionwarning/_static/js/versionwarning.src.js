@@ -1,113 +1,132 @@
-const semver = require('semver');
+import coerce from "semver/functions/coerce";
+import gt from "semver/functions/gt";
+import lt from "semver/functions/lt";
+import valid from "semver/functions/valid";
 
-function injectVersionWarningBanner(running_version, version, config) {
-    console.debug("injectVersionWarningBanner");
-    var version_url = window.location.pathname.replace(running_version.slug, version.slug);
-    var warning = $(config.banner.html);
-
-    warning
-      .find("a")
-      .attr("href", version_url)
-      .text(version.slug);
-
-    var body = $(config.banner.body_selector);
-    body.prepend(warning);
+/** Turn an HTML string into a DOM node (first child of a wrapper div). */
+function htmlToElement(html) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html.trim();
+  return wrapper.firstChild;
 }
 
+/** Normalise a version slug like "v2.1" or "stable-3" into a semver string, or null. */
+function normalise(slug) {
+  return valid(coerce(slug));
+}
 
+/**
+ * Insert a fully custom banner defined in the config.
+ */
 function injectCustomWarningBanner(config) {
-    console.debug("injectCustomWarningBanner");
-    var warning = $(config.banner.html);
-    var body = $(config.banner.body_selector);
-    body.prepend(warning);
+  console.debug("injectCustomWarningBanner");
+  const banner = htmlToElement(config.banner.html);
+  const container = document.querySelector(config.banner.body_selector);
+  container.insertBefore(banner, container.firstChild);
 }
 
+/**
+ * Insert the standard "you're reading an old version" banner, linking to the
+ * same page under the newest version's slug.
+ */
+function injectVersionWarningBanner(runningVersion, highestVersion, config) {
+  console.debug("injectVersionWarningBanner");
 
+  const newPath = window.location.pathname.replace(
+    runningVersion.slug,
+    highestVersion.slug,
+  );
+
+  const banner = htmlToElement(config.banner.html);
+  const link = banner.querySelector("a");
+  link.setAttribute("href", newPath);
+  link.textContent = highestVersion.slug;
+
+  const container = document.querySelector(config.banner.body_selector);
+  container.insertBefore(banner, container.firstChild);
+}
+
+/**
+ * From a list of Read the Docs version objects, return the one whose slug is
+ * the highest semver version. Slugs that can't be coerced to semver
+ * (e.g. "latest", "stable") are ignored.
+ */
 function getHighestVersion(versions) {
-    console.debug("getHighestVersion");
-    var highest_version;
-
-    $.each(versions, function (i, version) {
-        if (!semver.valid(semver.coerce(version.slug))) {
-            // Skip versions that are not valid
-        }
-        else if (!highest_version) {
-            highest_version = version;
-        }
-        else if (
-            semver.valid(semver.coerce(version.slug)) && semver.valid(semver.coerce(highest_version.slug)) &&
-            semver.gt(semver.coerce(version.slug), semver.coerce(highest_version.slug))) {
-            highest_version = version;
-        }
-    });
-    return highest_version;
+  console.debug("getHighestVersion");
+  let highest;
+  versions.forEach((version) => {
+    if (!normalise(version.slug)) return;
+    if (!highest) {
+      highest = version;
+    } else if (
+      normalise(highest.slug) &&
+      gt(coerce(version.slug), coerce(highest.slug))
+    ) {
+      highest = version;
+    }
+  });
+  return highest;
 }
 
+/**
+ * Show a banner if the version being viewed is older than the newest one.
+ */
+function checkVersion(config, versions) {
+  console.debug("checkVersion");
+  const runningVersion = config.version;
+  console.debug("Running version: " + runningVersion.slug);
+  if (config.meta.stable_as_highest) {
+    const highestVersion = versions.find((version) => version.slug == "stable");
+    if (highestVersion && normalise(runningVersion.slug) && highestVersion?.slug !== runningVersion.slug) {
+        injectVersionWarningBanner(runningVersion, highestVersion, config);
+        return;
+    }
+  }
+  const highestVersion = getHighestVersion(versions);
 
-function checkVersion(config) {
-    console.debug("checkVersion");
-    var running_version = config.version;
-    console.debug("Running version: " + running_version.slug);
-
-    var get_data = {
-        project__slug: config.project.slug,
-        active: "true"
-        // format: "jsonp",
-    };
-
-    $.ajax({
-        url: config.meta.api_url + "version/",
-        // Used when working locally for development
-        // crossDomain: true,
-        // xhrFields: {
-        //     withCredentials: true,
-        // },
-        // dataType: "jsonp",
-        data: get_data,
-        success: function (versions) {
-            // TODO: fetch more versions if there are more pages (next)
-            highest_version = getHighestVersion(versions["results"]);
-            if (
-                semver.valid(semver.coerce(running_version.slug)) && semver.valid(semver.coerce(highest_version.slug)) &&
-                semver.lt(semver.coerce(running_version.slug), semver.coerce(highest_version.slug))) {
-                console.debug("Highest version: " + highest_version.slug);
-                injectVersionWarningBanner(running_version, highest_version, config);
-            }
-        },
-        error: function () {
-            console.error("Error loading Read the Docs active versions.");
-        }
-    });
+  if (
+    normalise(runningVersion.slug) &&
+    normalise(highestVersion?.slug) &&
+    lt(coerce(runningVersion.slug), coerce(highestVersion.slug))
+  ) {
+    console.debug("Highest version: " + highestVersion.slug);
+    injectVersionWarningBanner(runningVersion, highestVersion, config);
+  }
 }
 
-function init() {
-    console.debug("init");
-    // get the base_url so we can get the versionwarning-data.json from
-    // any page.
-    var base_url = $('script[src*=versionwarning]').attr('src');
-    base_url = base_url.replace('versionwarning.js', '');
-    $.ajax({
-        url: base_url + "../../_static/data/versionwarning-data.json",
-        success: function(config) {
-            // Check if there is already a banner added statically
-            var banner = document.getElementById(config.banner.id_div);
-            if (banner) {
-                console.debug("There is already a banner added. No checking versions.")
-            }
-            else if (config.banner.custom) {
-                injectCustomWarningBanner(config);
-            }
-            else {
-                checkVersion(config);
-            }
-        },
-        error: function() {
-            console.error("Error loading versionwarning-data.json");
-        },
+/**
+ * Entry point: locate this script's own URL, derive the sibling JSON config
+ * path (js/versionwarning.js -> data/versionwarning-data.json), load it,
+ * then either show a custom banner or run the version check.
+ */
+function init(event) {
+  console.debug("init");
+  const versions = event.detail.data().versions.active;
+
+  let dataUrl = document
+    .querySelector('script[src*="versionwarning"]')
+    .getAttribute("src");
+  dataUrl = dataUrl
+    .replace("versionwarning.js", "versionwarning-data.json")
+    .replace("js/", "data/");
+
+  fetch(dataUrl)
+    .then((response) => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.json();
     })
+    .then((config) => {
+      if (document.getElementById(config.banner.id_div)) {
+        console.debug("There is already a banner added. No checking versions.");
+      } else if (config.banner.custom) {
+        injectCustomWarningBanner(config);
+      } else {
+        checkVersion(config, versions);
+      }
+    })
+    .catch((err) => {
+      console.error("Error loading versionwarning-data.json", err);
+    });
 }
 
-
-$(document).ready(function () {
-    init();
-});
+document.addEventListener("readthedocs-addons-data-ready", init);

@@ -1,10 +1,13 @@
 |PyPI version| |Docs badge| |License|
 
-sphinx-version-warning
+modern-sphinx-version-warning
 ======================
 
-``sphinx-version-warning`` is a Sphinx extension that allows you to show a Warning banner at the top of your documentation.
-By default, the banner is shown based on the version that is displayed compared (using SemVer_) with the latest version on the server.
+``modern-sphinx-version-warning
+`` is a Sphinx extension that shows a customizable
+warning banner at the top of versioned documentation hosted on Read the Docs.
+It uses the Read the Docs Addons data to compare the version being viewed with
+the highest active semantic version.
 
 
 Installation
@@ -12,7 +15,8 @@ Installation
 
 ::
 
-   pip install sphinx-version-warning
+   pip install modern-sphinx-version-warning
+
 
 
 Configuration
@@ -23,26 +27,34 @@ Add this extension in your ``conf.py`` file as:
 .. code-block:: python
 
    extensions = [
-    # ... other extensions here
+       # ... other extensions here
 
-    'versionwarning.extension',
+       'versionwarning.extension',
    ]
+
+The Read the Docs Addons API must also be enabled for the site. See the
+`installation documentation`_ for the required meta tag and complete setup.
+
+By default, the warning links to the highest active version whose slug can be
+interpreted as SemVer_. Set ``versionwarning_stable_as_highest = True`` in
+``conf.py`` to prefer Read the Docs' ``stable`` version instead.
 
 
 Documentation
 -------------
 
-Check out the full documentation at https://sphinx-version-warning.readthedocs.io/
+Check out the documentation for the original version at https://sphinx-version-warning.readthedocs.io/
 
 .. _SemVer: https://semver.org/
+.. _installation documentation: https://sphinx-version-warning.readthedocs.io/en/latest/installation.html
 
 
-.. |PyPI version| image:: https://img.shields.io/pypi/v/sphinx-version-warning.svg
-   :target: https://pypi.org/project/sphinx-version-warning
+.. |PyPI version| image:: https://img.shields.io/pypi/v/modern-sphinx-version-warning.svg
+   :target: https://pypi.org/project/modern-sphinx-version-warning
    :alt: Current PyPI version
 .. |Docs badge| image:: https://readthedocs.org/projects/sphinx-version-warning/badge/?version=latest
    :target: https://sphinx-version-warning.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation status
-.. |License| image:: https://img.shields.io/github/license/humitos/sphinx-version-warning.svg
+.. |License| image:: https://img.shields.io/github/license/grahamsh-llk/sphinx-version-warning.svg
    :target: LICENSE
    :alt: Repository license

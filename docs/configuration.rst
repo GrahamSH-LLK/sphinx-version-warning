@@ -1,8 +1,34 @@
 Configuration
 =============
 
-Here is the list of configurations that you can change to make the banner behaves as you want.
+Here is the list of configuration values you can change to control the banner.
 You can customize these options in your ``conf.py`` file:
+
+Version selection
+-----------------
+
+By default, the extension examines the active versions supplied by the Read
+the Docs Addons API. Version slugs that can be interpreted as semantic versions
+are compared, and a banner is shown when the current semantic version is older
+than the highest one.
+
+Slugs that cannot be interpreted as semantic versions, such as ``latest`` and
+``stable``, are excluded from this comparison. You can provide a custom banner
+for such a slug with :confval:`versionwarning_messages`.
+
+.. confval:: versionwarning_stable_as_highest
+
+   Description: Prefer the active Read the Docs ``stable`` version as the
+   warning target. When ``stable`` is available, any current semantic-version
+   slug other than ``stable`` links to it. If ``stable`` is unavailable, the
+   extension falls back to the highest active semantic version.
+
+   Default: ``False``
+
+   Type: boolean
+
+Banner customization
+--------------------
 
 .. confval:: versionwarning_admonition_type
 
@@ -30,7 +56,8 @@ You can customize these options in your ``conf.py`` file:
 
 .. confval:: versionwarning_messages
 
-   Description: Mapping between versions and a specific messages for its banners.
+   Description: Mapping of version slugs to custom banner messages. A custom
+   message is displayed without comparing the version against active versions.
 
    Default: ``{}``
 
@@ -44,14 +71,6 @@ You can customize these options in your ``conf.py`` file:
 
    Type: string
 
-.. confval:: versionwarning_project_slug
-
-   Description: Slug of the project under Read the Docs.
-
-   Default: ``READTHEDOCS_PROJECT`` environment variable.
-
-   Type: string
-
 .. confval:: versionwarning_project_version
 
    Description: Slug of the version for the current documentation.
@@ -60,17 +79,9 @@ You can customize these options in your ``conf.py`` file:
 
    Type: string
 
-.. confval:: versionwarning_api_url
-
-   Description: API URL to retrieve all versions for this project.
-
-   Default: ``https://readthedocs.org/api/v2/``
-
-   Type: string
-
 .. confval:: versionwarning_banner_html
 
-   Description: HTML code used for the banner shown
+   Description: HTML used for the displayed banner.
 
    Default:
 
@@ -88,7 +99,7 @@ You can customize these options in your ``conf.py`` file:
 
 .. confval:: versionwarning_banner_id_div
 
-   Description: HTML element ID used for the <div> inject as banner
+   Description: HTML element ID used for the injected banner ``<div>``.
 
    Default: ``version-warning-banner``
 
@@ -96,7 +107,8 @@ You can customize these options in your ``conf.py`` file:
 
 .. confval:: versionwarning_body_selector
 
-   Description: jQuery selector to find the body element in the page and *prepend* the banner
+   Description: CSS selector for the page container into which the banner is
+   inserted as the first child.
 
    Default: ``div.body``
 
